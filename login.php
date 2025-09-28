@@ -26,17 +26,20 @@ switch ($request["type"]){
 	case "login":
 		$username = $_POST["uname"];
 		$password = $_POST["pword"];
-		$mysqlstatement = $sql_connection->prepare("SELECT password_hash FROM users WHERE username = ?");
+		$mysqlstatement = $sql_connection->prepare("SELECT password FROM users WHERE username = ?");
 		$mysqlstatement->bind_param("s", $username);
 		$mysqlstatement->execute();
-		$mysqlstatement->bind_result($hash);
+		$mysqlstatement->bind_result($actual_password);
 		$mysqlstatement->fetch();		
 
-		if (!empty($hash) && password_verify($password, $hash)){
+		if (password_verify($password, $actual_password)){
 			$response = "login, yeah we can do that";
 		}else{
 			$response = "Invalid Username or password!";
 		}
+
+		$ok = password_verify($password, $hash);
+		error_log("DEBUG verify_result=".($ok?'1':'0')." pw_len=".strlen($password));
 		break;
 }
 echo json_encode($response);

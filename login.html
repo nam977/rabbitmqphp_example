@@ -26,7 +26,7 @@
 
     function SendLoginRequest(username,password)
     {
-	    var request = new XMLHttpRequest();
+        var request = new XMLHttpRequest();
         request.open("POST","login.php",true);
         request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
         request.onreadystatechange= function ()
@@ -70,8 +70,7 @@
 
             const loginUsername = formData.get("uname");
             const loginPassword = formData.get("pword");
-            SendLoginRequest("kehoed","12345");
-            //SendLoginRequest(loginUsername,loginPassword);
+            SendLoginRequest(loginUsername, loginPassword);
         });
     </script>
 </body>

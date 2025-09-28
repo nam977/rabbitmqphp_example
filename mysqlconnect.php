@@ -18,9 +18,15 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER["REQUEST_METHOD"] == "POST"){
 	$username = $_POST["username"];
 	$password = $_POST["password"];
 	$email = $_POST["email"];
-	$pass_salt = bin2hex(random_bytes(16));
-	$password_hash = password_hash($password . $pass_salt, PASSWORD_BCRYPT);
-	$query = "INSERT INTO users (username, password_hash, password_salt, email) VALUES ('$username',  '$password_hash', '$pass_salt', '$email')";
+	$my_salt_value = [
+		"cost" => 12,
+	];
+
+	$password = password_hash($password, PASSWORD_BCRYPT, $my_salt_value);
+	#$pass_salt = bin2hex(random_bytes(16));
+	#$password_hash = password_hash($password . $pass_salt, PASSWORD_BCRYPT);
+	$query = "INSERT INTO users (username, password, email) VALUES ('$username',  '$password', '$email')";
+	//_hash, password_salt, email) VALUES ('$username',  '$password_hash', '$pass_salt', '$email')";
 }
 
 $response = $mydb->query($query);
@@ -30,4 +36,6 @@ if ($mydb->errno != 0)
 	echo __FILE__.':'.__LINE__.":error: ".$mydb->error.PHP_EOL;
 	exit(0);
 }
+
+
 ?>
