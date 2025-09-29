@@ -33,16 +33,14 @@ switch ($request["type"]){
 		$mysqlstatement->fetch();		
 
 		if (password_verify($password, $actual_password)){
-			$response = "login, yeah we can do that";
+			//$response = "login, yeah we can do that";
+			require('cookiesetter.php');
 		}else{
 			$response = "Invalid Username or password!";
+			echo json_encode($response);
+			exit(0);
 		}
 
-		$ok = password_verify($password, $hash);
-		error_log("DEBUG verify_result=".($ok?'1':'0')." pw_len=".strlen($password));
 		break;
 }
-echo json_encode($response);
-exit(0);
-
 ?>

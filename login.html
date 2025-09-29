@@ -16,8 +16,12 @@
         console.log("First few chars:", response.substring(0, 10));
         
         try {
-            var text = JSON.parse(response);
-            document.getElementById("textResponse").innerHTML = "response: "+text+"<p>";
+            var jsonResponse = JSON.parse(response);
+            if (jsonResponse.status === "success") {
+                window.location.href = jsonResponse.redirect;
+            } else {
+                document.getElementById("textResponse").innerHTML = "Error: " + (jsonResponse.message || jsonResponse);
+            }
         } catch (e) {
             console.error("JSON parse error:", e);
             document.getElementById("textResponse").innerHTML = "Error: Invalid response format. Check console for details.";
