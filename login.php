@@ -1,5 +1,8 @@
 <?php
-if (!isset($_POST["type"]))
+header("Content-Type: application/json");
+$myjson_input = json_decode(file_get_contents("php://input"), true);
+
+if (!isset($myjson_input["type"]))
 {
 	$msg = "NO POST MESSAGE SET, POLITELY FUCK OFF";
 	echo json_encode($msg);
@@ -14,33 +17,31 @@ if ($sql_connection->connect_error){
 	exit(0);
 }
 
-$request = $_POST;
+$request = $myjson_input;
 $response = "unsupported request type, politely FUCK OFF";
 
-switch ($request["type"]){
-	/*
-	case "login":
-		$response = "login, yeah we can do that";
-	break;
-	*/
-	case "login":
-		$username = $_POST["uname"];
-		$password = $_POST["pword"];
-		$mysqlstatement = $sql_connection->prepare("SELECT password FROM users WHERE username = ?");
-		$mysqlstatement->bind_param("s", $username);
-		$mysqlstatement->execute();
-		$mysqlstatement->bind_result($actual_password);
-		$mysqlstatement->fetch();		
-
-		if (password_verify($password, $actual_password)){
-			//$response = "login, yeah we can do that";
-			require('cookiesetter.php');
-		}else{
-			$response = "Invalid Username or password!";
-			echo json_encode($response);
-			exit(0);
-		}
-
-		break;
+if ($request["type"] == 'login'){
+	$username = $myjson_input["uname"];
+	$password = $myjson_input["pword"];
+	$mysqlstatement = $sql_connection->prepare("SELECT password FROM users WHERE username = ?");
+	$mysqlstatement->bind_param("s", $username);
+	$mysqlstatement->execute();
+	$mysqlstatement->bind_result($actual_password);
+	$mysqlstatement->fetch();		
+	$result = array();
+	if (password_verify($password, $actual_password)){
+		$result["status"] = 'success';
+		$result['message'] = 'Login successful';
+		echo json_encode($result);
+		exit(0);
+	}else{
+		$result["status"] = "Error";
+		$result['message'] = "Invalid Username or password!";
+		echo json_encode($result);
+		exit(0);
+	}
 }
+echo json_encode(value: $response);
+exit(0);
+
 ?>

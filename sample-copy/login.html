@@ -12,27 +12,23 @@
     function HandleLoginResponse(response)
     {
         console.log("Raw response:", response);
+        console.log("Response length:", response.length);
+        console.log("First few chars:", response.substring(0, 10));
         
         try {
-            var myJsonResponse = JSON.parse(response);
-
-            if (myJsonResponse.status === "success") {
-                document.getElementById("textResponse").innerHTML = "Login successful! Redirecting...<p>";
-                window.location.href = "loggedin.html";
-            } else {
-                document.getElementById("textResponse").innerHTML = "Error:" + myJsonResponse.message + "<p>";
-            }
+            var text = JSON.parse(response);
+            document.getElementById("textResponse").innerHTML = "response: "+text+"<p>";
         } catch (e) {
             console.error("JSON parse error:", e);
             document.getElementById("textResponse").innerHTML = "Error: Invalid response format. Check console for details.";
         }
     }
 
-    function SendLoginRequestJSON(loginData)
+    function SendLoginRequest(username,password)
     {
         var request = new XMLHttpRequest();
         request.open("POST","login.php",true);
-        request.setRequestHeader("Content-Type","application/json");
+        request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
         request.onreadystatechange= function ()
         {
             
@@ -41,7 +37,7 @@
                 HandleLoginResponse(this.responseText);
             }		
         }
-        request.send(JSON.stringify(loginData));
+        request.send("type=login&uname="+username+"&pword="+password);
     }
 </script>
 
@@ -74,12 +70,7 @@
 
             const loginUsername = formData.get("uname");
             const loginPassword = formData.get("pword");
-            const loginData = {
-                type: "login",
-                uname: loginUsername,
-                pword: loginPassword
-            };
-            SendLoginRequestJSON(loginData);
+            SendLoginRequest(loginUsername, loginPassword);
         });
     </script>
 </body>
