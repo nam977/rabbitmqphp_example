@@ -11,7 +11,7 @@ if (!class_exists('rabbitMQClient')) {
 $myObjec= new rabbitMQClient("testRabbitMQ.ini","testServer");
 $msg = $argv[1] ?? "test message";
 $myObjec->request["type"] = "Login";
-$myObjec->request["username"] ="nathan";
+$myObjec->request["username"] ="wendys";
 $myObjec->request["password"] = "1234";
 $myObjec->request["message"] = $msg;
 
