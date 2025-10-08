@@ -3,6 +3,12 @@ require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
 
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Handle preflight request
+    http_response_code(200);
+    exit(0);
+}
+
 header('Content-Type: application/json; charset=utf-8');
 
 function json_response($data, $code=200) {
@@ -26,7 +32,7 @@ if (stripos($ct, 'application/json') !== false && $raw !== '') {
     $data = $_POST;
 }
 
-$client = new rabbitMQClient("testRabbitMQ.ini","testServer");
+$client = new rabbitMQClient("testRabbitMQ.ini","sharedServer");
 if (isset($argv[1]))
 {
   $msg = $argv[1];
@@ -54,7 +60,7 @@ $request = [
 ];
 
 try{
-  $client = new rabbitMQClient("testRabbitMQ.ini","testServer");
+  $client = new rabbitMQClient("testRabbitMQ.ini","sharedServer");
 
   $rmq = $client->send_request($request);
 

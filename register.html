@@ -25,42 +25,50 @@
 	<script>
 			// You can add JavaScript here if needed for form validation or other purposes
 		document.addEventListener("DOMContentLoaded", function() {
-			function HandleRegisterResponse(response){
-				console.log("Raw response:", response);
+			function HandleRegisterResponse(xhr){
 				const out = document.getElementById("textResponse");
-				
-				if (!out) return;
-				try {
-					const myJsonResponse = JSON.parse(response);
 
+				if (!out) return;
+
+				if (xhr.status < 200 || xhr.status >= 300) {
+					console.error("HTTP error:", xhr.status, xhr.responseText);
+					out.textContent = `Request failed (${xhr.status}).`;
+					return;
+				}
+
+				const text = xhr.responseText || "";
+				if (!text.trim()) {
+					console.error("Empty response body");
+					out.textContent = "Empty response from server.";
+					return;
+				}
+
+				try {
+					const myJsonResponse = JSON.parse(text);
 					if (myJsonResponse.status === "success") {
-						out.textContent = "Registration successful! Redirecting...<p>";
+						out.textContent = "Registration successful! Redirecting...";
 						window.location.href = "index.html";
 					} else {
-						out.textContent = "Registration failed: " + (myJsonResponse.message || "Unknown error") + "<p>";
-					}					
+						out.textContent = "Registration failed: " + (myJsonResponse.message || "Unknown error");
+					}
 				} catch (e) {
-					console.error("JSON parse error:", e);
-					out.textContent = "Error processing response.";
+					console.error("JSON parse error:", e, "Raw:", text);
+					out.textContent = "Invalid JSON from server.";
 				}
 			}
-
-			function SendRegisterRequestJSON(registerData)
-			{
+			
+			function SendRegisterRequestJSON(registerData){
 				var request = new XMLHttpRequest();
-				request.open("POST","testRabbitMQClient.php",true);
+				request.open("POST","testRabbitMQClient.php",true); // use absolute path
 				request.setRequestHeader("Content-Type","application/json");
 				request.onreadystatechange = function (){
-				
-					if (this.readyState == 4){
-						console.log("Server Response:", this.responseText);
-						HandleRegisterResponse(this.responseText);
+					if (this.readyState === 4){
+						HandleRegisterResponse(this);
 					}
 				};
-
 				request.onerror = function() {
 					console.error("Request error");
-					document.getElementById("textResponse").innerHTML = "A network error has occurred.";
+					document.getElementById("textResponse").textContent = "A network error has occurred.";
 				};
 				request.send(JSON.stringify(registerData));
 			}
