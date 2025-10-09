@@ -70,6 +70,7 @@
 					console.error("Request error");
 					document.getElementById("textResponse").textContent = "A network error has occurred.";
 				};
+				request.withCredentials = true; // Include cookies
 				request.send(JSON.stringify(registerData));
 			}
 

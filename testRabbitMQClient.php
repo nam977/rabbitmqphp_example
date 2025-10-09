@@ -1,4 +1,12 @@
 <?php
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
+header("Access-Control-Allow-Origin: $origin");
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Vary: Origin');
+
 require_once('path.inc');
 require_once('get_host_info.inc');
 require_once('rabbitMQLib.inc');
@@ -12,20 +20,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 header('Content-Type: application/json; charset=utf-8');
 
-function json_response($data, $code=200) {
+function json_response($data, $code=200): void {
   http_response_code($code);
   echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
   exit;
 } 
 
-if ($_SERVER['REQUEST_METHOD'] !== "POST") {
+$input = json_decode(file_get_contents('php://input'), true);
+
+if (!$input) {
     json_response(['status' => 'error', 'message' => 'Invalid request method.'], 405);
 }
 
-$raw = file_get_contents('php://input');
+$type = $input['type'] ?? '';
 
-$ct = $_SERVER['CONTENT_TYPE'] ?? '';
-if (stripos($ct, 'application/json') !== false && $raw !== '') {
+if ($type === 'register'){
+  json_response(['status' => 'success', 'message' => 'Registration Successful']);
+} elseif ($type === 'login'){
+  json_response(['status' => 'success', 'message' => 'Login Successful']);
+} else{
+  json_response(['status' => 'error', 'message' => 'Unknown type.'], 400);
+}
+
+if (stripos($ct, needle: 'application/json') !== false && $raw !== '') {
     $data = json_decode($raw, true);
     if (!is_array($data)) {
         json_response(['status' => 'error', 'message' => 'Invalid JSON format.'], 400);

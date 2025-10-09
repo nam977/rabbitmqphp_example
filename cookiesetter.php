@@ -1,14 +1,27 @@
 <?php
-function create_my_session_cookie(array $my_session): void{
-    $expires = strtotime($my_session['expires'] ?? '+1 hour');
-    $cookieParams = [
-        'expires' => $expires,
+
+function my_cookie_params(): array {
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $host = preg_replace('/:\d+$/', '', $host);
+    $proto = strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ($_SERVER['REQUEST_SCHEME'] ?? (isset($_SERVER['HTTPS']) ? 'HTTPS' : 'http')));
+    $is_https = $proto === 'https';
+
+    $my_params = [
         'path' => '/',
-        'domain' => $_SERVER['HTTP_HOST'] ?? '',
-        'secure' => isset($_SERVER['HTTPS']),
+        'secure' => $is_https,
         'httponly' => true,
         'samesite' => 'Lax'
     ];
+
+    if ($host && !filter_var($host, FILTER_VALIDATE_IP) && $host !== 'localhost') {
+        $my_params['domain'] = $host;
+    }
+    return $my_params;
+}
+function create_my_session_cookie(array $my_session): void{
+    $expires = strtotime($my_session['expires'] ?? '+1 hour');
+    $cookieParams = my_cookie_params();
+    $cookieParams['expires'] = $expires;
 
     if (!empty($my_session['session_id'])) {
         setcookie('session_id', $my_session['session_id'], $cookieParams);
@@ -20,16 +33,12 @@ function create_my_session_cookie(array $my_session): void{
 }
 
 function erase_my_session_cookies(): void {
-    $time_since_creation = time() - 3600; // 1 hour ago
-    foreach(['session_id', 'auth_token'] as $mycookie){
-        setcookie($mycookie, '', [
-            'expires' => $time_since_creation,
-            'path' => '/',
-            'domain' => $_SERVER['HTTP_HOST'] ?? '',
-            'secure' => !empty($_SERVER['HTTPS']),
-            'httponly' => true,
-            'samesite' => 'Lax'
-        ]);
+    $my_cookie_base = my_cookie_params();
+
+    $base['expires'] = time() - 3600;
+
+    foreach (['session_id', 'auth_token'] as $cookie_name) {
+        setcookie($cookie_name, '', $base);
     }
 }
 ?>

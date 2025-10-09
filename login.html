@@ -68,6 +68,7 @@
                 console.error("Request error");
                 document.getElementById("textResponse").innerHTML = "A network error has occurred.";
             };
+            request.withCredentials = true; // Include cookies
             request.send(JSON.stringify( loginData) );
         }
         
