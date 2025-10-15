@@ -25,58 +25,59 @@
                 <input type="submit" value="login"> 
             </form>
 
-            <p id="textResponse"> Waiting for response</p>
+            <!--p id="textResponse"> Waiting for response</p-->
         </div>
     </section>
     <script>
         
     // Add your JavaScript code here
     document.addEventListener("DOMContentLoaded", function() {
-        function HandleLoginResponse(response)
+        const output = document.getElementById("textResponse");
+
+        function HandleLoginResponse(xhr)
         {
-            console.log("Raw response:", response);
-            const out = document.getElementById("textResponse");
+            if (xhr.status !== 200) {
+                output.textContent = "Server Error: " + xhr.status + " " + xhr.statusText;
+                return;
+            }
 
-            try {
-                const myJsonResponse = JSON.parse(response || "{}");
+            let res;
 
-                if (myJsonResponse.status === "success") {
-                    out.textContent = "Login successful! Redirecting...<p>";
-                    window.location.href = "loggedin.html";
-                } else {
-                    out.textContent = "Login failed: " + (myJsonResponse.message || "Unknown error") + "<p>";
+            try { res = JSON.parse(xhr.responseText); } 
+            catch { output.textContent = "Error parsing server response."; return; }
+
+            const success = 
+                (res.status && res.status.toLowerCase() === "success") ||
+                (res.returnCode === 0);
+            
+            if (success) {
+                if (res.session) {
+                    document.cookie = `session_id=${res.session.session_id}; path=/; SameSite=Lax`;
+                    document.cookie = `auth_token=${res.session.auth_token}; path=/; SameSite=Lax`;
                 }
-            } catch (e) {
-                console.error("JSON parse error:", e);
-                out.textContent = "Error processing response.";
+                output.textContent = "Login successful! Redirecting to main page.";
+                window.location.href = "loggedin.html";
+            } else {
+                output.textContent = "Login failed: " + (res.message || "Unknown error");
             }
         }
-    
 
-        function SendLoginRequestJSON(loginData)
+        function SendLoginRequest(loginData)
         {
-            var request = new XMLHttpRequest();
-            request.open("POST","testRabbitMQClient.php",true);
-            request.setRequestHeader("Content-Type","application/json");
-            request.onreadystatechange = function () {
-                if (this.readyState == 4) {
-                    console.log("Server Response:", this.responseText);
-                    HandleLoginResponse(this.responseText);
-                }		
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST","testRabbitMQClient.php");
+            xhr.setRequestHeader("Content-Type","application/json");
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4) { console.log("Server Response:", this.responseText); HandleLoginResponse(this); }		
             };
-            request.onerror = function() {
-                console.error("Request error");
-                document.getElementById("textResponse").innerHTML = "A network error has occurred.";
-            };
-            request.withCredentials = true; // Include cookies
-            request.send(JSON.stringify( loginData) );
+            xhr.send(JSON.stringify(loginData));
         }
         
-        document.getElementById("loginForm").addEventListener("submit", function(event) {
-            event.preventDefault(); // Prevent the default form submission
-            const loginUsername = document.getElementById("username").value.trim();
-            const loginPassword = document.getElementById("password").value;
-            SendLoginRequestJSON({ type: "login", username: loginUsername, password: loginPassword }); 
+        document.getElementById("loginForm").addEventListener("submit", (e) => {
+            e.preventDefault(); // Prevent the default form submission
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value;
+            SendLoginRequest({ type: "login", username, password});
         });
     });  
 </script>
