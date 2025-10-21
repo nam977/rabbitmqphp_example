@@ -14,6 +14,41 @@
     </body>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const sessionId = sessionStorage.getItem("session_id");
+            const authToken = sessionStorage.getItem("auth_token");
+
+            if (!sessionId || !authToken) {
+                // No valid session, redirect to login page
+                window.location.href = "login.html";
+            }
+
+            fetch("testSession.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    type: "validate_session",
+                    session_id: sessionId,
+                    auth_token: authToken
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.valid) {
+                    sessionStorage.clear();
+                    window.location.href = "login.html";
+                    console.log("Session is in  valid.");
+                }
+            })
+            .catch(() => {
+                console.error("Error validating session:", error);
+                sessionStorage.clear();
+                window.location.href = "login.html";
+            });
+        });
+
         document.getElementById("logoutButton").addEventListener("click", function() {
             // Clear the session cookies
             document.cookie = "session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";

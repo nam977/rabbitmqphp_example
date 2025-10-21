@@ -50,11 +50,10 @@
                 (res.status && res.status.toLowerCase() === "success") ||
                 (res.returnCode === 0);
             
-            if (success) {
-                if (res.session) {
-                    document.cookie = `session_id=${res.session.session_id}; path=/; SameSite=Lax`;
-                    document.cookie = `auth_token=${res.session.auth_token}; path=/; SameSite=Lax`;
-                }
+            if (success && res.session) {
+                sessionStorage.setItem("session_id", res.session.session_id);
+                sessionStorage.setItem("auth_token", res.session.auth_token);
+                sessionStorage.setItem("login_time", res.session.login_time);
                 output.textContent = "Login successful! Redirecting to main page.";
                 window.location.href = "loggedin.html";
             } else {

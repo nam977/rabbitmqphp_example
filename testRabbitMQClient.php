@@ -83,7 +83,7 @@ if (!is_array($input)) {
 }
 
 $type = strtolower((string)($input['type'] ?? ''));
-if (!in_array($type, ['login', 'register', 'validate_session'], true)) {
+if (!in_array($type, ['login', 'register', 'validate_session', 'create_thread', 'list_threads', 'create_comment', 'list_comment'], true)) {
     json_response(['error' => 'Unknown request type'], 400);
 }
 
@@ -91,6 +91,10 @@ $username       = (string)($input['username'] ?? '');
 $password       = (string)($input['password'] ?? '');
 $email          = (string)($input['email'] ?? '');
 $session_id     = (string)($input['sessionId'] ?? $input['session_id'] ?? $input['sessionid'] ?? '');
+
+$title  = (string)($input['title'] ?? '');
+$body   = (string)($input['body'] ?? '');
+
 
 $request = [
     'type'          => $type,
@@ -100,6 +104,13 @@ $request = [
     'session_id'    => $session_id,
     "message"       => "Greeting from RabbitMQClient.php"
 ];
+
+if ($type === 'create_thread'){
+    $request['title'] = $title;
+    $request['body'] = $body;
+}
+
+
 
 try {
     $client = new rabbitMQClient("testRabbitMQ.ini","sharedServer");
