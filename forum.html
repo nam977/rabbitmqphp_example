@@ -5,7 +5,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title> Steddit Forum </title>
-    <head>
+    </head>
 
     <body>
         <header>
@@ -17,7 +17,7 @@
         </header>
         <main>
             <section class="panel" aria-labelledby="threadsHeading">
-                <div stype="display:flex;justify-content:space-between;align-items:center;gap:lrem;flex-wrap:wrap;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
                     <h2 id="threadsHeading" style="margin:0;"> Latest Threads</h2>
                     <button id="refreshThreads" type="button">Refresh</button>
                 </div>
@@ -35,8 +35,7 @@
                     <input type="text" id="threadTitle" name="title" placeholder="share an update or ask a question!" required>
                     <label for="threadBody">Details</label>
 
-                    <textarea id="threadBody" name="body" placeholder="Find more information from fellow stock traders!" required></textarea>
-                    </textarea>
+                    <textarea id="threadBody" name="body" placeholder="Find more information from fellow stock traders!" required></textarea>  
                     <button type="submit"> Post Thread </button>
                 </form>
             </section>
@@ -53,14 +52,14 @@
 
                 const successResponse   = (res) => {
                     if(!res) return false;
-                    if(res.status && typeof res.status === "string" && res.status.toLowerCase() === "success"); return true;
-                    if (typeof res.returnCode !== "undefined" && Number(res.returnCode) === 0); return true;
+                    if(res.status && typeof res.status === "string" && res.status.toLowerCase() === "success") return true;
+                    if (typeof res.returnCode !== "undefined" && Number(res.returnCode) === 0) return true;
                     return false;
                 };
 
                 const request = async(type, payload = {}) => {
                     const body = JSON.stringify({...payload, type});
-                    const respose = await fetch("testRabbitMQClient.php", {
+                    const response = await fetch("testRabbitMQClient.php", {
                         method: 'POST',
                         headers: {'content-type': 'application/json'},
                         body
@@ -68,12 +67,12 @@
 
                     if (!response.ok){
                         const text = await response.text();
-                        throw new Error('Server error: $(response.status): $(text)');
+                        throw new Error(`Server error: ${response.status} ${text}`);
                     }
 
                     let data;
                     try {
-                        await response.json();
+                        data = await response.json();
                     } catch(err) {
                         throw new Error("Invalid JSON response from gateway");
                     }
@@ -98,7 +97,7 @@
                     threadContainer.innerHTML = '';
                     if (!threads.length){
                         emptyState.classList.remove('hidden');
-                        threadsContainer.appendChild(emptyState);
+                        threadContainer.appendChild(emptyState);
                         return;
                     }
 
@@ -127,7 +126,7 @@
                     card.appendChild(meta);
                     fragment.appendChild(card);
                 });
-                threadsContainer.appendChild(fragment);
+                threadContainer.appendChild(fragment);
             };
 
             const loadThreads = async () => {
@@ -150,7 +149,7 @@
             };
 
             const createThread = async (title, body) => {
-                statusMessage.textContent = "Posting threat";
+                statusMessage.textContent = "Posting thread";
                 
                 try {
                     const res = await request('create_thread', {title, body});
@@ -163,8 +162,8 @@
                     await loadThreads();
                     statusMessage.textContent = "Thread posted successfully";
                     setTimeout(() => {
-                        
-                    }, timeout);
+                        statusMessage.textContent = '';
+                    }, 2500);
                 }catch (err){
                     console.error(err);
                     statusMessage.textContent = err.message;
@@ -174,7 +173,7 @@
             const logout = async () => {
                 document.cookie = 'session_id=; Max-Age=0; path=/;';
                 document.cookie = 'auth_token=; Max-Age=0; path=/;';
-                windows.location.href = "index.html";
+                window.location.href = "index.html";
             };
 
             logoutButton.addEventListener('click', logout);
@@ -193,9 +192,9 @@
 
                 await createThread(title, body);
             });
-            windows.addEventListener('DOMContentLoaded', async () => {
+            window.addEventListener('DOMContentLoaded', async () => {
                 await ensureAuthentication();
-                await loadThreads;
+                await loadThreads();
             });
         })();
         </script>
