@@ -4,12 +4,11 @@
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <title>IT490 Logged In Page</title>
     </head>
     <body>
         <h1>Welcome to the IT490 Logged In Page</h1>
-
+        <a href="forum.html">Go to Steddit Forum</a>
         <button id="logoutButton">Logout</button>
     </body>
 
@@ -23,11 +22,13 @@
                 window.location.href = "login.html";
             }
 
-            fetch("testSession.php", {
+            console.log("sid=", sessionId.getItem('session_id'), 
+                        "tok=", sessionStorage.getItem('auth_token'));
+
+            fetch("mqGateway.php", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json"},
+                credentials: "same-origin",
                 body: JSON.stringify({
                     type: "validate_session",
                     session_id: sessionId,
@@ -36,13 +37,19 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (!data.valid) {
+                const ok =
+                data &&
+                (data.session_valid === true ||
+                    data.valid === true ||
+                    (String(data.status).toLowerCase() === "success" && Number(data.returnCode) === 0));
+                
+                if (!ok) {  
                     sessionStorage.clear();
                     window.location.href = "login.html";
-                    console.log("Session is in  valid.");
+                    console.error("Session is invalid:", data);
                 }
             })
-            .catch(() => {
+            .catch((error) => {
                 console.error("Error validating session:", error);
                 sessionStorage.clear();
                 window.location.href = "login.html";
