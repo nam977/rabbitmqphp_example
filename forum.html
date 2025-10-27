@@ -130,7 +130,19 @@
 
                             const body = JSON.stringify({ ...filtered, type: t });
                             console.debug('[request body] =', body);
-                            
+
+                            if (t === "create_thread"){
+                                const box =
+                                document.getElementById('requestPreview') ||
+                                (() => {
+                                    const el = document.createElement('div');
+                                    el.id = 'requestPreview';
+                                    document.querySelector("#createThreadForm").after(el);
+                                    return el;
+                                })();  
+                                box.textContent = `\nTitle: ${filtered.title}\n\nBody: ${filtered.body}`;
+                            }                           
+
                             const response = await fetch(`mqGateway.php`, {
                                 method: 'POST',
                                 headers: { 
