@@ -57,6 +57,8 @@
 				var xhr = new XMLHttpRequest();
 				xhr.open("POST","testRabbitMQClient.php"); // use absolute path
 				xhr.setRequestHeader("Content-Type","application/json");
+				// Add credentials for CORS as recommended by the article
+				xhr.withCredentials = true;
 				xhr.onreadystatechange = function (){
 					if (this.readyState === 4) HandleRegisterResponse(this);
 				};

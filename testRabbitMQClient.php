@@ -1,16 +1,29 @@
 <?php
 declare(strict_types= 1);
 
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
-header("Access-Control-Allow-Origin: $origin");
+// Improved CORS handling based on the article recommendations
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowed_origins = [
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://localhost:80',
+    'http://127.0.0.1:80'
+];
+
+// Dynamic origin handling as recommended in the article
+if (in_array($origin, $allowed_origins) || ($origin === '' && isset($_SERVER['HTTP_HOST']))) {
+    header("Access-Control-Allow-Origin: " . ($origin ?: 'http://' . $_SERVER['HTTP_HOST']));
+} else {
+    header("Access-Control-Allow-Origin: http://localhost");
+}
+
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Vary: Origin');
 
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+// Handle preflight requests properly as recommended in the article
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 } 
@@ -129,6 +142,7 @@ if ($type === "validate_session") {
 }
 
 try {
+    // All requests must go through RabbitMQ to the backend server
     $client = new rabbitMQClient("testRabbitMQ.ini","sharedServer");
     error_log('[gateway] sending: ' . json_encode($request));
     $response = $client->send_request($request);

@@ -1,6 +1,31 @@
 <?php
+// Improved CORS headers based on the article recommendations
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowed_origins = [
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://localhost:80',
+    'http://127.0.0.1:80'
+];
+
+// Dynamic origin handling as recommended in the article
+if (in_array($origin, $allowed_origins) || ($origin === '' && isset($_SERVER['HTTP_HOST']))) {
+    header("Access-Control-Allow-Origin: " . ($origin ?: 'http://' . $_SERVER['HTTP_HOST']));
+} else {
+    header("Access-Control-Allow-Origin: http://localhost");
+}
+
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Vary: Origin');
 header("Content-Type: application/json; charset=UTF-8");
 
+// Handle preflight requests properly
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 try{
     $raw = file_get_contents("php://input");
     $input = json_decode($raw, true);

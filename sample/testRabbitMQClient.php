@@ -127,7 +127,7 @@ try {
     $result = [
         'status'        => $ok ? 'success' : 'error',
         'returnCode'    => (int)($response['returnCode'] ?? ($ok ? 0 : 1)),
-        'message'       => $response['message'] ?? '',,
+        'message'       => $response['message'] ?? '',
         'session'       => $response['session'] ?? null,
         'cookieSet'     => $cookieSet,
         'session_valid' => ($type === 'validate_session') ? $ok : null,
