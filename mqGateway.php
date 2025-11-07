@@ -26,6 +26,13 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS
     http_response_code(200);
     exit;
 }
+
+// Respond to simple health checks (GET/HEAD) so a browser or curl -I doesn't get a 500
+if (isset($_SERVER['REQUEST_METHOD']) && in_array($_SERVER['REQUEST_METHOD'], ['HEAD', 'GET'], true)) {
+    http_response_code(200);
+    echo json_encode(['ok' => true, 'message' => 'mqGateway: ready - send POST with JSON body']);
+    exit;
+}
 try{
     $raw = file_get_contents("php://input");
     $input = json_decode($raw, true);
@@ -107,6 +114,12 @@ try{
             break;
     }
 } catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode(['ok' => false, 'message' => 'Server error', 'details' => $e->getMessage()]);
-}   
+    // Return 400 for client input errors, otherwise 500 for server errors
+    $msg = $e->getMessage();
+    if ($msg === 'Invalid input') {
+        http_response_code(400);
+    } else {
+        http_response_code(500);
+    }
+    echo json_encode(['ok' => false, 'message' => $msg]);
+}
