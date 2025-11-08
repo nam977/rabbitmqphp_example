@@ -7,4 +7,3 @@ define('ALPHAVANTAGE_API_URL', 'https://www.alphavantage.co/query');
 
 define('RPC_TIMEOUT_MS', 7000);
 ?>
-
